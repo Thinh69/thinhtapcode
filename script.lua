@@ -1,17 +1,26 @@
 local player = game.Players.LocalPlayer
 local espEnabled = false
-
+local aimbotEnabled = false
 local gui = Instance.new("ScreenGui")
 gui.Parent = player:WaitForChild("PlayerGui")
 
 -- MAIN FRAME
 local main = Instance.new("Frame", gui)
+main.ZIndex = 1
 main.Size = UDim2.new(0, 350, 0, 250)
 main.Position = UDim2.new(0.3, 0, 0.3, 0)
+main.BackgroundTransparency = 0.3
 main.BackgroundColor3 = Color3.fromRGB(10,10,10)
 main.Active = true
 main.Draggable = true
 Instance.new("UICorner", main).CornerRadius = UDim.new(0,10)
+local bg = Instance.new("ImageLabel", main)
+bg.Size = UDim2.new(1,0,1,0)
+bg.Position = UDim2.new(0,0,0,0)
+bg.BackgroundTransparency = 1
+bg.Image = "rbxassetid://122990385101945"
+bg.ImageTransparency = 0.4 -- chỉnh độ mờ
+bg.ZIndex = 0
 
 -- TITLE
 local title = Instance.new("TextLabel", main)
@@ -91,7 +100,8 @@ local function createButton(parent, text, y)
     btn.Position = UDim2.new(0.075,0,0,y)
     btn.Text = text
     btn.BackgroundColor3 = Color3.fromRGB(25,25,25)
-    btn.TextColor3 = Color3.fromRGB(255,255,255)
+	btn.BackgroundTransparency = 0.3
+	btn.TextColor3 = Color3.fromRGB(255,255,255)
     btn.Font = Enum.Font.Gotham
     btn.TextSize = 14
     Instance.new("UICorner", btn)
@@ -102,6 +112,8 @@ local function createToggle(parent, text, y, callback)
     frame.Size = UDim2.new(0.85,0,0,35)
     frame.Position = UDim2.new(0.075,0,0,y)
     frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
+    frame.BackgroundTransparency = 0.2
+	frame.Active = false
     Instance.new("UICorner", frame)
 
     local label = Instance.new("TextLabel", frame)
@@ -116,12 +128,14 @@ local function createToggle(parent, text, y, callback)
     toggle.Size = UDim2.new(0,50,0,20)
     toggle.Position = UDim2.new(1,-60,0.5,-10)
     toggle.BackgroundColor3 = Color3.fromRGB(50,50,50)
+    toggle.Active = true
     Instance.new("UICorner", toggle).CornerRadius = UDim.new(1,0)
 
     local circle = Instance.new("Frame", toggle)
     circle.Size = UDim2.new(0,18,0,18)
     circle.Position = UDim2.new(0,1,0.5,-9)
     circle.BackgroundColor3 = Color3.fromRGB(255,255,255)
+    circle.Active = false
     Instance.new("UICorner", circle).CornerRadius = UDim.new(1,0)
 
     local state = false
@@ -157,13 +171,12 @@ createButton(tab1, "Teleport", 145)
 createToggle(tab2, "ESP", 10, function(state)
     espEnabled = state
 end)
-espBtn.MouseButton1Click:Connect(function()
-    espEnabled = not espEnabled
-    espBtn.Text = espEnabled and "ESP: ON" or "ESP: OFF"
-end)
+
 
 -- TAB 2
-createButton(tab2, "Aimbot", 55)
+createToggle(tab2, "Aimbot", 55, function(state)
+    aimbotEnabled = state
+end)
 createButton(tab2, "Fly", 100)
 createButton(tab2, "Auto Farm", 145)
 
@@ -243,7 +256,7 @@ runService.RenderStepped:Connect(function()
             if not espEnabled then
                 if char:FindFirstChild("ESP_H") then char.ESP_H:Destroy() end
                 if char:FindFirstChild("ESP_GUI") then char.ESP_GUI:Destroy() end
-                continue
+				continue
             end
 
             if not char:FindFirstChild("ESP_H") then
@@ -286,5 +299,56 @@ runService.RenderStepped:Connect(function()
                 gui.TXT.Text = p.Name .. " [" .. math.floor(dist) .. "m]"
             end
         end
+    end
+end)
+
+local UIS = game:GetService("UserInputService")
+local camera = workspace.CurrentCamera
+
+local aiming = false
+
+-- giữ chuột phải
+UIS.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton2 then
+        aiming = true
+    end
+end)
+
+UIS.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton2 then
+        aiming = false
+    end
+end)
+
+-- tìm player gần nhất
+local function getClosestPlayer()
+    local closest = nil
+    local shortest = math.huge
+
+    for _, p in pairs(game.Players:GetPlayers()) do
+        if p ~= game.Players.LocalPlayer and p.Character and p.Character:FindFirstChild("Head") then
+            local pos, onScreen = camera:WorldToViewportPoint(p.Character.Head.Position)
+
+            if onScreen then
+                local dist = (Vector2.new(pos.X, pos.Y) - UIS:GetMouseLocation()).Magnitude
+
+                if dist < shortest then
+                    shortest = dist
+                    closest = p
+                end
+            end
+        end
+    end
+
+    return closest
+end
+
+-- loop aim
+game:GetService("RunService").RenderStepped:Connect(function()
+    if not aimbotEnabled or not aiming then return end
+
+    local target = getClosestPlayer()
+    if target and target.Character and target.Character:FindFirstChild("Head") then
+        camera.CFrame = CFrame.new(camera.CFrame.Position, target.Character.Head.Position)
     end
 end)
