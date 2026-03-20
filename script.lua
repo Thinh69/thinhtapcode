@@ -126,7 +126,7 @@ local function createToggle(parent, text, y, callback)
 
     local state = false
 
-    frame.InputBegan:Connect(function(input)
+    toggle.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             state = not state
 
