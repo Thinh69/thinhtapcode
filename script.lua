@@ -97,6 +97,55 @@ local function createButton(parent, text, y)
     Instance.new("UICorner", btn)
     return btn
 end
+local function createToggle(parent, text, y, callback)
+    local frame = Instance.new("Frame", parent)
+    frame.Size = UDim2.new(0.85,0,0,35)
+    frame.Position = UDim2.new(0.075,0,0,y)
+    frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
+    Instance.new("UICorner", frame)
+
+    local label = Instance.new("TextLabel", frame)
+    label.Size = UDim2.new(0.7,0,1,0)
+    label.BackgroundTransparency = 1
+    label.Text = text
+    label.TextColor3 = Color3.fromRGB(255,255,255)
+    label.Font = Enum.Font.Gotham
+    label.TextSize = 14
+
+    local toggle = Instance.new("Frame", frame)
+    toggle.Size = UDim2.new(0,50,0,20)
+    toggle.Position = UDim2.new(1,-60,0.5,-10)
+    toggle.BackgroundColor3 = Color3.fromRGB(50,50,50)
+    Instance.new("UICorner", toggle).CornerRadius = UDim.new(1,0)
+
+    local circle = Instance.new("Frame", toggle)
+    circle.Size = UDim2.new(0,18,0,18)
+    circle.Position = UDim2.new(0,1,0.5,-9)
+    circle.BackgroundColor3 = Color3.fromRGB(255,255,255)
+    Instance.new("UICorner", circle).CornerRadius = UDim.new(1,0)
+
+    local state = false
+
+    frame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            state = not state
+
+            if state then
+                toggle.BackgroundColor3 = Color3.fromRGB(0,170,0)
+                circle:TweenPosition(UDim2.new(1,-19,0.5,-9), "Out", "Quad", 0.2, true)
+            else
+                toggle.BackgroundColor3 = Color3.fromRGB(50,50,50)
+                circle:TweenPosition(UDim2.new(0,1,0.5,-9), "Out", "Quad", 0.2, true)
+            end
+
+            if callback then
+                callback(state)
+            end
+        end
+    end)
+
+    return frame
+end
 
 -- TAB 1
 createButton(tab1, "Speed", 10)
@@ -105,7 +154,9 @@ createButton(tab1, "Reset", 100)
 createButton(tab1, "Teleport", 145)
 
 -- ESP BUTTON
-local espBtn = createButton(tab2, "ESP: OFF", 10)
+createToggle(tab2, "ESP", 10, function(state)
+    espEnabled = state
+end)
 espBtn.MouseButton1Click:Connect(function()
     espEnabled = not espEnabled
     espBtn.Text = espEnabled and "ESP: ON" or "ESP: OFF"
