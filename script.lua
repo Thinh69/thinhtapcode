@@ -16,7 +16,7 @@ gui.ResetOnSpawn = false
 
 -- MAIN FRAME
 local main = Instance.new("Frame", gui)
-main.Size = UDim2.new(0, 350, 0, 250)
+main.Size = UDim2.new(0, 350, 0, 320)
 main.Position = UDim2.new(0.3, 0, 0.3, 0)
 main.BackgroundTransparency = 0.3
 main.BackgroundColor3 = Color3.fromRGB(10,10,10)
@@ -127,6 +127,31 @@ end)
 
 createToggle(main, "Aimbot", 110, function(v)
     aimbotEnabled = v
+end)
+
+-- thêm nút Fly
+createToggle(main, "BAY", 160, function(v)
+    flyEnabled = v
+
+    if v then
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/Thinh69/baycungthinh/main/bay.lua"))()
+    end
+end)
+
+createToggle(main, "Xuyên Tường", 210, function(v)
+    NOCLIPEnabled = v
+
+    if v then
+		loadstring(game:HttpGet("https://raw.githubusercontent.com/Thinh69/noclip/main/noclip.lua"))()
+	end
+end)
+
+createToggle(main, "Tàng Hình", 260, function(v)
+    TANGHINHEnabled = v
+
+    if v then
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/Thinh69/tanghinh/main/tanghinh.lua"))()
+    end
 end)
 
 -- HELPER: tìm part an toàn cho mọi game
