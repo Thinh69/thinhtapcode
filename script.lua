@@ -129,7 +129,14 @@ createToggle(main, "Aimbot", 110, function(v)
     aimbotEnabled = v
 end)
 
--- ESP SYSTEM (KHÔNG MẤT KHI ẨN UI + AUTO RELOAD SAU RESPAWN)
+-- HELPER: tìm part an toàn cho mọi game
+local function getPart(char)
+    return char:FindFirstChild("Head")
+        or char:FindFirstChild("UpperTorso")
+        or char:FindFirstChild("HumanoidRootPart")
+end
+
+-- ESP SYSTEM (FIX FULL GAME FPS)
 RunService.RenderStepped:Connect(function()
     local myChar = player.Character
     if not myChar or not myChar:FindFirstChild("HumanoidRootPart") then return end
@@ -137,9 +144,9 @@ RunService.RenderStepped:Connect(function()
     local myPos = myChar.HumanoidRootPart.Position
 
     for _,p in pairs(Players:GetPlayers()) do
-        if p ~= player and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+        if p ~= player and p.Character then
             local char = p.Character
-            local hrp = char.HumanoidRootPart
+            local hrp = char:FindFirstChild("HumanoidRootPart")
 
             if not espEnabled then
                 if char:FindFirstChild("ESP_H") then char.ESP_H:Destroy() end
@@ -149,6 +156,7 @@ RunService.RenderStepped:Connect(function()
                 continue
             end
 
+            -- HIGHLIGHT
             if not char:FindFirstChild("ESP_H") then
                 local h = Instance.new("Highlight")
                 h.Name = "ESP_H"
@@ -161,6 +169,7 @@ RunService.RenderStepped:Connect(function()
                 and Color3.fromRGB(0,255,0)
                 or Color3.fromRGB(255,0,0)
 
+            -- ESP GUI
             local espGui = game.CoreGui:FindFirstChild(p.Name.."_ESP")
 
             if not espGui then
@@ -179,19 +188,15 @@ RunService.RenderStepped:Connect(function()
                 txt.TextStrokeTransparency = 0
             end
 
-            -- FIX AN TOÀN: chỉ gán khi có Head
-            local head = char:FindFirstChild("Head")
-            if head then
-                espGui.Adornee = head
+            -- gán part an toàn
+            local part = getPart(char)
+            if part then
+                espGui.Adornee = part
             end
 
-            local dist = (hrp.Position - myPos).Magnitude
-            if espGui:FindFirstChild("TXT") then
-                espGui.TXT.Text = p.Name.." ["..math.floor(dist).."m]"
-            end
-
-            local dist = (hrp.Position - myPos).Magnitude
-            if espGui:FindFirstChild("TXT") then
+            -- khoảng cách (nếu có HRP)
+            if hrp and espGui:FindFirstChild("TXT") then
+                local dist = (hrp.Position - myPos).Magnitude
                 espGui.TXT.Text = p.Name.." ["..math.floor(dist).."m]"
             end
         end
